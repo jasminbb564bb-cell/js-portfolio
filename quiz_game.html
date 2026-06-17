@@ -3,23 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>クイズゲーム</title>
+  <title>モノクロクイズゲーム</title>
   <style>
     :root {
-      --color-bg: #f4f7fb;
-      --color-card: #ffffff;
-      --color-text: #182230;
-      --color-muted: #667085;
-      --color-border: #d7deea;
-      --color-primary: #2563eb;
-      --color-primary-hover: #1d4ed8;
-      --color-primary-soft: #eaf1ff;
-      --color-success: #137a4c;
-      --color-success-bg: #e8f7ee;
-      --color-error: #b42318;
-      --color-error-bg: #fff1f0;
-      --color-focus: #f59e0b;
-      --shadow-card: 0 18px 42px rgba(31, 41, 55, 0.14);
+      --bg: #f4f4f5;
+      --panel: #ffffff;
+      --ink: #0a0a0a;
+      --muted: #52525b;
+      --line: #d4d4d8;
+      --line-strong: #18181b;
+      --soft: #eeeeef;
+      --button: #111111;
+      --button-hover: #2b2b2b;
+      --success: #ffffff;
+      --success-bg: #111111;
+      --error: #111111;
+      --error-bg: #e4e4e7;
+      --focus: #737373;
+      --shadow: 0 22px 54px rgba(0, 0, 0, 0.16);
     }
 
     * {
@@ -33,53 +34,103 @@
       place-items: center;
       padding: 24px;
       background:
-        linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(19, 122, 76, 0.08)),
-        var(--color-bg);
-      color: var(--color-text);
+        linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+        linear-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+        var(--bg);
+      background-size: 28px 28px;
+      color: var(--ink);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.5;
     }
 
-    .quiz-card {
-      width: min(100%, 560px);
-      padding: 28px;
-      background: var(--color-card);
-      border: 1px solid var(--color-border);
+    .quiz-shell {
+      width: min(100%, 720px);
+      display: grid;
+      gap: 16px;
+    }
+
+    .top-visual {
+      min-height: 104px;
+      overflow: hidden;
+      border: 2px solid var(--line-strong);
       border-radius: 8px;
-      box-shadow: var(--shadow-card);
+      background: #ffffff;
+      box-shadow: 8px 8px 0 #111111;
+    }
+
+    .top-visual svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 104px;
+    }
+
+    .quiz-card {
+      padding: 28px;
+      background: var(--panel);
+      border: 2px solid var(--line-strong);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
     }
 
     .status-bar {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr auto;
       align-items: center;
-      justify-content: space-between;
       gap: 16px;
       padding-bottom: 18px;
-      border-bottom: 1px solid var(--color-border);
-      color: var(--color-muted);
+      border-bottom: 2px solid var(--line-strong);
+      color: var(--muted);
       font-size: 0.95rem;
-      font-weight: 700;
+      font-weight: 800;
     }
 
-    .status-bar span {
-      min-width: 0;
-      overflow-wrap: anywhere;
+    .progress-track {
+      height: 10px;
+      margin-top: 10px;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: #ffffff;
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        45deg,
+        #111111,
+        #111111 8px,
+        #3f3f46 8px,
+        #3f3f46 16px
+      );
+      transition: width 0.25s ease;
+    }
+
+    .score-pill {
+      min-width: 112px;
+      padding: 8px 12px;
+      border: 2px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--ink);
+      text-align: center;
     }
 
     .question-area {
-      min-height: 142px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 30px 0;
+      min-height: 164px;
+      display: grid;
+      place-items: center;
+      padding: 32px 0 24px;
       text-align: center;
     }
 
     .question-text {
       margin: 0;
-      color: var(--color-text);
-      font-size: clamp(1.35rem, 4.5vw, 2rem);
-      font-weight: 800;
+      color: var(--ink);
+      font-size: clamp(1.42rem, 4vw, 2.15rem);
+      font-weight: 900;
+      letter-spacing: 0;
       overflow-wrap: anywhere;
     }
 
@@ -87,30 +138,53 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 12px;
-      margin-top: 4px;
     }
 
     .answer-input {
       width: 100%;
-      min-height: 48px;
-      padding: 0 14px;
-      border: 1px solid var(--color-border);
+      min-height: 50px;
+      padding: 0 15px;
+      border: 2px solid var(--line-strong);
       border-radius: 8px;
       background: #ffffff;
-      color: var(--color-text);
+      color: var(--ink);
       font: inherit;
       outline: none;
     }
 
     .answer-input:focus {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+      box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.16);
     }
 
     .answer-input:disabled {
-      background: #eef2f7;
-      color: var(--color-muted);
+      background: #e4e4e7;
+      color: var(--muted);
       cursor: not-allowed;
+    }
+
+    .feedback {
+      min-height: 50px;
+      margin-top: 16px;
+      padding: 12px 14px;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--ink);
+      font-weight: 800;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .feedback.correct {
+      border-color: #111111;
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .feedback.incorrect {
+      border-color: #111111;
+      background: var(--error-bg);
+      color: var(--error);
     }
 
     .button-row {
@@ -122,73 +196,59 @@
     }
 
     button {
-      min-height: 48px;
-      min-width: 112px;
-      border: 0;
+      min-height: 50px;
+      min-width: 116px;
+      border: 2px solid var(--line-strong);
       border-radius: 8px;
       padding: 0 18px;
-      background: var(--color-primary);
+      background: var(--button);
       color: #ffffff;
       font: inherit;
-      font-weight: 800;
+      font-weight: 900;
       cursor: pointer;
       transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
     }
 
     button:hover:not(:disabled) {
-      background: var(--color-primary-hover);
+      background: var(--button-hover);
       transform: translateY(-1px);
-      box-shadow: 0 10px 18px rgba(37, 99, 235, 0.22);
+      box-shadow: 6px 6px 0 #000000;
     }
 
     button:focus-visible {
-      outline: 3px solid var(--color-focus);
-      outline-offset: 2px;
+      outline: 4px solid var(--focus);
+      outline-offset: 3px;
     }
 
     button:disabled {
-      background: #9aa8bd;
+      background: #a1a1aa;
+      color: #f4f4f5;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
 
     .secondary-button {
-      background: var(--color-text);
+      background: #ffffff;
+      color: var(--ink);
     }
 
     .secondary-button:hover:not(:disabled) {
-      background: #344054;
-      box-shadow: 0 10px 18px rgba(52, 64, 84, 0.18);
-    }
-
-    .feedback {
-      min-height: 48px;
-      margin-top: 18px;
-      padding: 12px 14px;
-      border-radius: 8px;
-      background: var(--color-primary-soft);
-      color: var(--color-muted);
-      font-weight: 700;
-      text-align: center;
-      overflow-wrap: anywhere;
-    }
-
-    .feedback.correct {
-      background: var(--color-success-bg);
-      color: var(--color-success);
-    }
-
-    .feedback.incorrect {
-      background: var(--color-error-bg);
-      color: var(--color-error);
+      background: #f4f4f5;
+      box-shadow: 6px 6px 0 #000000;
     }
 
     .hidden {
       display: none !important;
     }
 
-    @media (max-width: 520px) {
+    @media (max-width: 560px) {
       body {
         padding: 16px;
+      }
+
+      .top-visual {
+        box-shadow: 5px 5px 0 #111111;
       }
 
       .quiz-card {
@@ -196,14 +256,18 @@
       }
 
       .status-bar {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 6px;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .score-pill {
+        min-width: 0;
+        width: 100%;
       }
 
       .question-area {
-        min-height: 128px;
-        padding: 24px 0;
+        min-height: 142px;
+        padding: 26px 0 20px;
       }
 
       .answer-row {
@@ -217,41 +281,78 @@
   </style>
 </head>
 <body>
-  <main class="quiz-card" aria-label="クイズゲーム">
-    <header class="status-bar">
-      <span id="progressText">問題 0 / 3</span>
-      <span id="scoreText">スコア: 0</span>
-    </header>
+  <main class="quiz-shell" aria-label="モノクロクイズゲーム">
+    <div class="top-visual" aria-hidden="true">
+      <svg viewBox="0 0 720 124" role="img">
+        <rect width="720" height="124" fill="#ffffff"></rect>
+        <path d="M0 92 H720" stroke="#111111" stroke-width="3"></path>
+        <path d="M52 92 L116 32 L180 92 Z" fill="#111111"></path>
+        <path d="M248 92 L318 20 L388 92 Z" fill="#ffffff" stroke="#111111" stroke-width="6"></path>
+        <circle cx="506" cy="60" r="32" fill="#111111"></circle>
+        <rect x="600" y="28" width="70" height="64" rx="8" fill="#ffffff" stroke="#111111" stroke-width="6"></rect>
+        <path d="M616 51 H654 M616 69 H642" stroke="#111111" stroke-width="6" stroke-linecap="round"></path>
+        <path d="M0 110 C112 94 182 114 278 100 C390 84 470 118 586 96 C636 86 680 88 720 78" fill="none" stroke="#111111" stroke-width="5"></path>
+      </svg>
+    </div>
 
-    <section class="question-area" aria-live="polite">
-      <p class="question-text" id="questionText">スタートボタンを押してください</p>
+    <section class="quiz-card">
+      <header class="status-bar">
+        <div>
+          <div id="progressText">問題 0 / 5</div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+        <div class="score-pill" id="scoreText">スコア: 0</div>
+      </header>
+
+      <section class="question-area" aria-live="polite">
+        <p class="question-text" id="questionText">スタートを押してください</p>
+      </section>
+
+      <div class="answer-row">
+        <input
+          class="answer-input"
+          id="answerInput"
+          type="text"
+          autocomplete="off"
+          placeholder="答えを入力"
+          disabled
+        >
+        <button id="submitButton" type="button" disabled>回答</button>
+      </div>
+
+      <div class="feedback" id="feedbackArea" aria-live="polite">準備ができたら始めてください。</div>
+
+      <div class="button-row">
+        <button id="startButton" type="button">スタート</button>
+        <button class="secondary-button hidden" id="retryButton" type="button">もう一度</button>
+      </div>
     </section>
-
-    <div class="answer-row">
-      <input
-        class="answer-input"
-        id="answerInput"
-        type="text"
-        autocomplete="off"
-        placeholder="答えを入力"
-        disabled
-      >
-      <button id="submitButton" type="button" disabled>回答</button>
-    </div>
-
-    <div class="feedback" id="feedbackArea" aria-live="polite">準備ができたら開始してください。</div>
-
-    <div class="button-row">
-      <button id="startButton" type="button">スタート</button>
-      <button class="secondary-button hidden" id="retryButton" type="button">もう一度</button>
-    </div>
   </main>
 
   <script>
     const questions = [
-      { question: "日本の首都は？", answer: "東京" },
-      { question: "フランスの首都は？", answer: "パリ" },
-      { question: "アメリカの首都は？", answer: "ワシントン" }
+      {
+        question: "日本国憲法が施行された年は？",
+        answers: ["1947年", "1947", "昭和22年"]
+      },
+      {
+        question: "太陽系で最も大きい惑星は？",
+        answers: ["木星", "もくせい", "ジュピター", "jupiter"]
+      },
+      {
+        question: "三平方の定理で有名な古代ギリシャの数学者は？",
+        answers: ["ピタゴラス", "ぴたごらす", "pythagoras"]
+      },
+      {
+        question: "元素記号 Fe が表す元素は？",
+        answers: ["鉄", "てつ", "iron"]
+      },
+      {
+        question: "『吾輩は猫である』の作者は？",
+        answers: ["夏目漱石", "なつめそうせき", "漱石"]
+      }
     ];
 
     let currentQuestionIndex = 0;
@@ -259,6 +360,7 @@
     let isPlaying = false;
 
     const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
     const scoreText = document.getElementById("scoreText");
     const questionText = document.getElementById("questionText");
     const answerInput = document.getElementById("answerInput");
@@ -293,24 +395,31 @@
       updateStatus();
     }
 
+    function normalizeAnswer(value) {
+      return value.trim().replace(/\s+/g, "").toLowerCase();
+    }
+
     function submitAnswer() {
-      if (!isPlaying) {
+      if (!isPlaying || submitButton.disabled) {
         return;
       }
 
-      const userAnswer = answerInput.value.trim();
-      const correctAnswer = questions[currentQuestionIndex].answer;
+      const userAnswer = normalizeAnswer(answerInput.value);
+      const currentQuestion = questions[currentQuestionIndex];
+      const isCorrect = currentQuestion.answers
+        .map(normalizeAnswer)
+        .includes(userAnswer);
 
       answerInput.disabled = true;
       submitButton.disabled = true;
 
-      if (userAnswer === correctAnswer) {
+      if (isCorrect) {
         score += 1;
-        feedbackArea.textContent = "正解です。";
+        feedbackArea.textContent = "正解です！";
         feedbackArea.classList.add("correct");
         feedbackArea.classList.remove("incorrect");
       } else {
-        feedbackArea.textContent = `不正解です。正解は「${correctAnswer}」です。`;
+        feedbackArea.textContent = `不正解です。正解は「${currentQuestion.answers[0]}」です。`;
         feedbackArea.classList.add("incorrect");
         feedbackArea.classList.remove("correct");
       }
@@ -319,39 +428,37 @@
       updateStatus();
 
       if (currentQuestionIndex >= questions.length) {
-        finishGame();
+        window.setTimeout(finishGame, 850);
         return;
       }
 
-      window.setTimeout(showQuestion, 900);
+      window.setTimeout(showQuestion, 850);
     }
 
     function finishGame() {
       isPlaying = false;
       questionText.textContent = `終了です。最終スコアは ${score} / ${questions.length} です。`;
-      progressText.textContent = `問題 ${questions.length} / ${questions.length}`;
-      scoreText.textContent = `スコア: ${score}`;
       answerInput.value = "";
       answerInput.disabled = true;
       submitButton.disabled = true;
       retryButton.classList.remove("hidden");
-    }
-
-    function resetGame() {
-      startGame();
+      updateStatus();
     }
 
     function updateStatus() {
       const displayQuestionNumber = isPlaying
         ? Math.min(currentQuestionIndex + 1, questions.length)
         : currentQuestionIndex;
+      const completedQuestions = Math.min(currentQuestionIndex, questions.length);
+      const progressPercent = (completedQuestions / questions.length) * 100;
 
       progressText.textContent = `問題 ${displayQuestionNumber} / ${questions.length}`;
       scoreText.textContent = `スコア: ${score}`;
+      progressFill.style.width = `${progressPercent}%`;
     }
 
     startButton.addEventListener("click", startGame);
-    retryButton.addEventListener("click", resetGame);
+    retryButton.addEventListener("click", startGame);
     submitButton.addEventListener("click", submitAnswer);
     answerInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
