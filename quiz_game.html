@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>クイズゲーム</title>
+  <style>
+    :root {
+      --color-bg: #f4f7fb;
+      --color-card: #ffffff;
+      --color-text: #182230;
+      --color-muted: #667085;
+      --color-border: #d7deea;
+      --color-primary: #2563eb;
+      --color-primary-hover: #1d4ed8;
+      --color-primary-soft: #eaf1ff;
+      --color-success: #137a4c;
+      --color-success-bg: #e8f7ee;
+      --color-error: #b42318;
+      --color-error-bg: #fff1f0;
+      --color-focus: #f59e0b;
+      --shadow-card: 0 18px 42px rgba(31, 41, 55, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(19, 122, 76, 0.08)),
+        var(--color-bg);
+      color: var(--color-text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    .quiz-card {
+      width: min(100%, 560px);
+      padding: 28px;
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-muted);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .status-bar span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .question-area {
+      min-height: 142px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 0;
+      text-align: center;
+    }
+
+    .question-text {
+      margin: 0;
+      color: var(--color-text);
+      font-size: clamp(1.35rem, 4.5vw, 2rem);
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .answer-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .answer-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--color-text);
+      font: inherit;
+      outline: none;
+    }
+
+    .answer-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+    }
+
+    .answer-input:disabled {
+      background: #eef2f7;
+      color: var(--color-muted);
+      cursor: not-allowed;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      min-height: 48px;
+      min-width: 112px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 18px;
+      background: var(--color-primary);
+      color: #ffffff;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--color-primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(37, 99, 235, 0.22);
+    }
+
+    button:focus-visible {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    button:disabled {
+      background: #9aa8bd;
+      cursor: not-allowed;
+    }
+
+    .secondary-button {
+      background: var(--color-text);
+    }
+
+    .secondary-button:hover:not(:disabled) {
+      background: #344054;
+      box-shadow: 0 10px 18px rgba(52, 64, 84, 0.18);
+    }
+
+    .feedback {
+      min-height: 48px;
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: var(--color-primary-soft);
+      color: var(--color-muted);
+      font-weight: 700;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .feedback.correct {
+      background: var(--color-success-bg);
+      color: var(--color-success);
+    }
+
+    .feedback.incorrect {
+      background: var(--color-error-bg);
+      color: var(--color-error);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 16px;
+      }
+
+      .quiz-card {
+        padding: 20px;
+      }
+
+      .status-bar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .question-area {
+        min-height: 128px;
+        padding: 24px 0;
+      }
+
+      .answer-row {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="quiz-card" aria-label="クイズゲーム">
+    <header class="status-bar">
+      <span id="progressText">問題 0 / 3</span>
+      <span id="scoreText">スコア: 0</span>
+    </header>
+
+    <section class="question-area" aria-live="polite">
+      <p class="question-text" id="questionText">スタートボタンを押してください</p>
+    </section>
+
+    <div class="answer-row">
+      <input
+        class="answer-input"
+        id="answerInput"
+        type="text"
+        autocomplete="off"
+        placeholder="答えを入力"
+        disabled
+      >
+      <button id="submitButton" type="button" disabled>回答</button>
+    </div>
+
+    <div class="feedback" id="feedbackArea" aria-live="polite">準備ができたら開始してください。</div>
+
+    <div class="button-row">
+      <button id="startButton" type="button">スタート</button>
+      <button class="secondary-button hidden" id="retryButton" type="button">もう一度</button>
+    </div>
+  </main>
+
+  <script>
+    const questions = [
+      { question: "日本の首都は？", answer: "東京" },
+      { question: "フランスの首都は？", answer: "パリ" },
+      { question: "アメリカの首都は？", answer: "ワシントン" }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let isPlaying = false;
+
+    const progressText = document.getElementById("progressText");
+    const scoreText = document.getElementById("scoreText");
+    const questionText = document.getElementById("questionText");
+    const answerInput = document.getElementById("answerInput");
+    const submitButton = document.getElementById("submitButton");
+    const feedbackArea = document.getElementById("feedbackArea");
+    const startButton = document.getElementById("startButton");
+    const retryButton = document.getElementById("retryButton");
+
+    function startGame() {
+      currentQuestionIndex = 0;
+      score = 0;
+      isPlaying = true;
+
+      startButton.classList.add("hidden");
+      retryButton.classList.add("hidden");
+      answerInput.disabled = false;
+      submitButton.disabled = false;
+      updateStatus();
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const currentQuestion = questions[currentQuestionIndex];
+
+      questionText.textContent = currentQuestion.question;
+      answerInput.value = "";
+      answerInput.disabled = false;
+      submitButton.disabled = false;
+      feedbackArea.textContent = "答えを入力してください。";
+      feedbackArea.classList.remove("correct", "incorrect");
+      answerInput.focus();
+      updateStatus();
+    }
+
+    function submitAnswer() {
+      if (!isPlaying) {
+        return;
+      }
+
+      const userAnswer = answerInput.value.trim();
+      const correctAnswer = questions[currentQuestionIndex].answer;
+
+      answerInput.disabled = true;
+      submitButton.disabled = true;
+
+      if (userAnswer === correctAnswer) {
+        score += 1;
+        feedbackArea.textContent = "正解です。";
+        feedbackArea.classList.add("correct");
+        feedbackArea.classList.remove("incorrect");
+      } else {
+        feedbackArea.textContent = `不正解です。正解は「${correctAnswer}」です。`;
+        feedbackArea.classList.add("incorrect");
+        feedbackArea.classList.remove("correct");
+      }
+
+      currentQuestionIndex += 1;
+      updateStatus();
+
+      if (currentQuestionIndex >= questions.length) {
+        finishGame();
+        return;
+      }
+
+      window.setTimeout(showQuestion, 900);
+    }
+
+    function finishGame() {
+      isPlaying = false;
+      questionText.textContent = `終了です。最終スコアは ${score} / ${questions.length} です。`;
+      progressText.textContent = `問題 ${questions.length} / ${questions.length}`;
+      scoreText.textContent = `スコア: ${score}`;
+      answerInput.value = "";
+      answerInput.disabled = true;
+      submitButton.disabled = true;
+      retryButton.classList.remove("hidden");
+    }
+
+    function resetGame() {
+      startGame();
+    }
+
+    function updateStatus() {
+      const displayQuestionNumber = isPlaying
+        ? Math.min(currentQuestionIndex + 1, questions.length)
+        : currentQuestionIndex;
+
+      progressText.textContent = `問題 ${displayQuestionNumber} / ${questions.length}`;
+      scoreText.textContent = `スコア: ${score}`;
+    }
+
+    startButton.addEventListener("click", startGame);
+    retryButton.addEventListener("click", resetGame);
+    submitButton.addEventListener("click", submitAnswer);
+    answerInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        submitAnswer();
+      }
+    });
+  </script>
+</body>
+</html>
